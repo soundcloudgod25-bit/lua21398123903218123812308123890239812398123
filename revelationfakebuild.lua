@@ -3537,74 +3537,7 @@ local ref do
                 settings.freestanding = freestanding
             end
 
-            local manual_yaw = { } do
-                manual_yaw.enabled = config_system.push(
-                    'antiaim', 'manual_yaw.enabled', menu.new(
-                        ui.new_checkbox, 'AA', 'Fake lag', new_key('Manual yaw', 'manual_yaw')
-                    )
-                )
-
-                manual_yaw.disable_yaw_modifiers = config_system.push(
-                    'antiaim', 'manual_yaw.disable_yaw_modifiers', menu.new(
-                        ui.new_checkbox, 'AA', 'Fake lag', new_key('Disable yaw modifiers', 'manual_yaw')
-                    )
-                )
-
-                manual_yaw.body_freestanding = config_system.push(
-                    'antiaim', 'manual_yaw.body_freestanding', menu.new(
-                        ui.new_checkbox, 'AA', 'Fake lag', new_key('Body freestanding', 'manual_yaw')
-                    )
-                )
-
-                manual_yaw.left_hotkey = config_system.push(
-                    'antiaim', 'manual_yaw.left_hotkey', menu.new(
-                        ui.new_hotkey, 'AA', 'Fake lag', new_key(
-                            'Left manual', 'manual_yaw'
-                        )
-                    )
-                )
-
-                manual_yaw.right_hotkey = config_system.push(
-                    'antiaim', 'manual_yaw.right_hotkey', menu.new(
-                        ui.new_hotkey, 'AA', 'Fake lag', new_key(
-                            'Right manual', 'manual_yaw'
-                        )
-                    )
-                )
-
-                manual_yaw.forward_hotkey = config_system.push(
-                    'antiaim', 'manual_yaw.forward_hotkey', menu.new(
-                        ui.new_hotkey, 'AA', 'Fake lag', new_key(
-                            'Forward manual', 'manual_yaw'
-                        )
-                    )
-                )
-
-                manual_yaw.backward_hotkey = config_system.push(
-                    'antiaim', 'manual_yaw.backward_hotkey', menu.new(
-                        ui.new_hotkey, 'AA', 'Fake lag', new_key(
-                            'Backward manual', 'manual_yaw'
-                        )
-                    )
-                )
-
-                manual_yaw.reset_hotkey = config_system.push(
-                    'antiaim', 'manual_yaw.reset_hotkey', menu.new(
-                        ui.new_hotkey, 'AA', 'Fake lag', new_key(
-                            'Reset manual', 'manual_yaw'
-                        )
-                    )
-                )
-
-                manual_yaw.left_hotkey:set 'Toggle'
-                manual_yaw.right_hotkey:set 'Toggle'
-                manual_yaw.forward_hotkey:set 'Toggle'
-                manual_yaw.backward_hotkey:set 'Toggle'
-
-                manual_yaw.reset_hotkey:set 'On hotkey'
-
-                settings.manual_yaw = manual_yaw
-            end
+            
 
             local safe_head = { } do
                 safe_head.enabled = config_system.push(
@@ -4849,21 +4782,6 @@ local ref do
 
                     menu_logic.set(ref.freestanding.enabled, true)
                     menu_logic.set(ref.freestanding.hotkey, true)
-
-                    local is_manual_yaw = ref.manual_yaw.enabled:get() do
-                        menu_logic.set(ref.manual_yaw.enabled, true)
-
-                        if is_manual_yaw then
-                            menu_logic.set(ref.manual_yaw.disable_yaw_modifiers, true)
-                            menu_logic.set(ref.manual_yaw.body_freestanding, true)
-
-                            menu_logic.set(ref.manual_yaw.left_hotkey, true)
-                            menu_logic.set(ref.manual_yaw.right_hotkey, true)
-                            menu_logic.set(ref.manual_yaw.forward_hotkey, true)
-                            menu_logic.set(ref.manual_yaw.backward_hotkey, true)
-                            menu_logic.set(ref.manual_yaw.reset_hotkey, true)
-                        end
-                    end
 
                     local is_defensive_flick = ref.defensive_flick.enabled:get() do
                         menu_logic.set(ref.defensive_flick.enabled, true)
@@ -10398,18 +10316,6 @@ local features do
                 end
             end
 
-            local function on_paint_ui()
-                update_hotkey_data(ref.left_hotkey.ref, 'left')
-                update_hotkey_data(ref.right_hotkey.ref, 'right')
-                update_hotkey_data(ref.forward_hotkey.ref, 'forward')
-                update_hotkey_data(ref.backward_hotkey.ref, 'backward')
-
-                update_hotkey_data(ref.reset_hotkey.ref, nil)
-            end
-
-            function manual_yaw:get()
-                return current_dir
-            end
 
             function manual_yaw:update(cmd)
                 local angle = dir_rotations[
@@ -10467,10 +10373,6 @@ local features do
 
                 return true
             end
-
-            client.set_event_callback(
-                'paint_ui', on_paint_ui
-            )
 
             antiaim.manual_yaw = manual_yaw
         end

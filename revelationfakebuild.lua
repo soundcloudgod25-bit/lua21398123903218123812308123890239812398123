@@ -10000,7 +10000,7 @@ local features do
                 buffer.pitch = 'Custom'
                 buffer.pitch_offset = cmd.pitch
 
-                buffer.yaw_base = 'Local view'
+                buffer.yaw_base = 'at target'
 
                 builder:apply_ex(items)
 
@@ -10233,7 +10233,7 @@ local features do
                     buffer.pitch_offset = 0
                     buffer.yaw = "Spin"
                     buffer.yaw_offset = 25
-                    buffer.yaw_base = 'Local view'
+                    buffer.yaw_base = 'at target'
                     buffer.yaw_jitter = "Off"
                     buffer.jitter_offset = 0
                     buffer.body_yaw = 'Static'
@@ -10330,7 +10330,7 @@ local features do
                 )
 
                 buffer.enabled = true
-                buffer.yaw_base = 'Local view'
+                buffer.yaw_base = 'at target'
 
                 buffer.yaw = 'Static'
                 buffer.yaw_offset = angle.y
@@ -10463,7 +10463,7 @@ local features do
                     end
                 end
 
-                buffer.yaw_base = 'Local view'
+                buffer.yaw_base = 'at target'
 
                 return true
             end

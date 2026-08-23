@@ -892,6 +892,7 @@ local locker_system do
     ]
 
     local list = { }
+	
 
     local function update_items()
         for i = 1, #list do
@@ -3492,50 +3493,88 @@ local ref do
         end
 
         local settings = { } do
-            local disablers = { } do
-                disablers.enabled = config_system.push(
-                    'antiaim', 'disablers.enabled', menu.new(
-                        ui.new_checkbox, 'AA', 'Fake lag', new_key('Spin if', 'Spin if')
-                    )
-                )
 
-                disablers.select = menu.new(
-                    ui.new_multiselect, 'AA', 'Fake lag', new_key('\n Select', 'Spin if'), {
-                        'Warmup',
-                        'No enemies'
-                    }
-                )
+    local disablers = { } do
+        disablers.enabled = config_system.push(
+            'antiaim',
+            'disablers.enabled',
+            menu.new(
+                ui.new_checkbox,
+                'AA',
+                'Fake lag',
+                new_key('Spin if', 'Spin if')
+            )
+        )
+    end
 
-                lock_unselection(disablers.select)
-
-                settings.disablers = disablers
-            end
-
-            local avoid_backstab = { } do
+                        local avoid_backstab = { } do
                 avoid_backstab.enabled = config_system.push(
-                    'antiaim', 'avoid_backstab.enabled', menu.new(
-                        ui.new_checkbox, 'AA', 'Fake lag', new_key('Avoid backstab', 'avoid_backstab')
+                    'antiaim',
+                    'avoid_backstab.enabled',
+                    menu.new(
+                        ui.new_checkbox,
+                        'AA',
+                        'Fake lag',
+                        new_key(
+                            'Avoid backstab',
+                            'avoid_backstab'
+                        )
                     )
                 )
 
                 settings.avoid_backstab = avoid_backstab
             end
 
-            local freestanding = { } do
-                freestanding.enabled = config_system.push(
-                    'antiaim', 'freestanding.enabled', menu.new(
-                        ui.new_checkbox, 'AA', 'Fake lag', new_key('Freestanding', 'freestanding')
-                    )
-                )
 
-                freestanding.hotkey = config_system.push(
-                    'antiaim', 'freestanding.hotkey', menu.new(
-                        ui.new_hotkey, 'AA', 'Fake lag', new_key('Hotkey', 'freestanding'), true
-                    )
-                )
+local freestanding = { } do
+    freestanding.enabled = config_system.push(
+        'antiaim',
+        'freestanding.enabled',
+        menu.new(
+            ui.new_checkbox,
+            'AA',
+            'Fake lag',
+            new_key(
+                'Freestanding',
+                'freestanding'
+            )
+        )
+    )
 
-                settings.freestanding = freestanding
-            end
+    freestanding.static = config_system.push(
+        'antiaim',
+        'freestanding.static',
+        menu.new(
+            ui.new_checkbox,
+            'AA',
+            'Fake lag',
+            new_key(
+                'Static Freestand',
+                'freestanding'
+            )
+        )
+    )
+
+    freestanding.hotkey = config_system.push(
+        'antiaim',
+        'freestanding.hotkey',
+        menu.new(
+            ui.new_hotkey,
+            'AA',
+            'Fake lag',
+            new_key(
+                'Hotkey',
+                'freestanding'
+            ),
+            true
+        )
+    )
+
+    settings.freestanding = freestanding
+
+    menu_logic.set(freestanding.static, true)
+    menu_logic.force_update()
+end
 
             
 
@@ -4438,6 +4477,7 @@ local ref do
                 ui.set_visible(ref.limit, value)
             end
         end
+		
 
         local function update_builder_items(items)
             local defensive = items.defensive
@@ -4762,13 +4802,6 @@ local ref do
                 local settings do
                     local ref = antiaim.settings
 
-                    local is_disablers = ref.disablers.enabled:get() do
-                        menu_logic.set(ref.disablers.enabled, true)
-
-                        if is_disablers then
-                            menu_logic.set(ref.disablers.select, true)
-                        end
-                    end
 
                     menu_logic.set(ref.avoid_backstab.enabled, true)
 
@@ -4782,6 +4815,8 @@ local ref do
 
                     menu_logic.set(ref.freestanding.enabled, true)
                     menu_logic.set(ref.freestanding.hotkey, true)
+
+
 
                     local is_defensive_flick = ref.defensive_flick.enabled:get() do
                         menu_logic.set(ref.defensive_flick.enabled, true)
@@ -10081,11 +10116,6 @@ local features do
                     return false
                 end
 
-                local warmup_period = entity.get_prop(
-                    game_rules, 'm_bWarmupPeriod'
-                )
-
-                return warmup_period == 1
             end
 
             local function is_no_enemies()
@@ -10139,24 +10169,6 @@ local features do
                 end
 
                 return false
-            end
-
-            function disablers:update(cmd)
-                if not ref.enabled:get() then
-                    return
-                end
-
-                if should_disable() then
-                    buffer.pitch = 'Custom'
-                    buffer.pitch_offset = 0
-                    buffer.yaw = "Spin"
-                    buffer.yaw_offset = 25
-                    buffer.yaw_base = 'at target'
-                    buffer.yaw_jitter = "Off"
-                    buffer.jitter_offset = 0
-                    buffer.body_yaw = 'Static'
-                    buffer.body_yaw_offset = 0
-                end
             end
         end
 
@@ -10316,6 +10328,13 @@ local features do
                 end
             end
 
+            local function on_paint_ui()
+
+            end
+
+            function manual_yaw:get()
+                return current_dir
+            end
 
             function manual_yaw:update(cmd)
                 local angle = dir_rotations[
@@ -10374,154 +10393,180 @@ local features do
                 return true
             end
 
+            client.set_event_callback(
+                'paint_ui', on_paint_ui
+            )
+
             antiaim.manual_yaw = manual_yaw
         end
 
         local freestanding = { } do
-            local ref = ref.antiaim.settings.freestanding
+    local ref = ref.antiaim.settings.freestanding
 
-            local last_ack_defensive_side = nil
-            local freestanding_side = nil
+    local last_ack_defensive_side = nil
+    local freestanding_side = nil
 
-            local function is_value_near(value, target)
-                return math.abs(target - value) <= 2.0
-            end
+    local function is_value_near(value, target)
+        return math.abs(target - value) <= 2.0
+    end
 
-            local function get_target_yaw(player)
-                local threat = client.current_threat()
+    local function get_target_yaw(player)
+        local threat = client.current_threat()
 
-                if threat == nil then
-                    return nil
-                end
+        if threat == nil then
+            return nil
+        end
 
-                local player_origin = vector(
-                    entity.get_origin(player)
-                )
+        local player_origin = vector(
+            entity.get_origin(player)
+        )
 
-                local threat_origin = vector(
-                    entity.get_origin(threat)
-                )
+        local threat_origin = vector(
+            entity.get_origin(threat)
+        )
 
-                local delta = threat_origin - player_origin
-                local _, yaw = delta:angles()
+        local delta = threat_origin - player_origin
+        local _, yaw = delta:angles()
 
-                return yaw - 180
-            end
+        return yaw - 180
+    end
 
-            local function get_approximated_side(yaw)
-                if is_value_near(yaw, -90) then
-                    return -90
-                end
+    local function get_approximated_side(yaw)
+        if is_value_near(yaw, -90) then
+            return -90
+        end
 
-                if is_value_near(yaw, 90) then
-                    return 90
-                end
+        if is_value_near(yaw, 90) then
+            return 90
+        end
 
-                return nil
-            end
+        return nil
+    end
 
-            local function get_side()
-                local me = entity.get_local_player()
+    local function get_side()
+        local me = entity.get_local_player()
 
-                if me == nil then
-                    return nil
-                end
+        if me == nil then
+            return nil
+        end
 
-                local entity_data = c_entity(me)
+        local entity_data = c_entity(me)
 
-                if entity_data == nil then
-                    return nil
-                end
+        if entity_data == nil then
+            return nil
+        end
 
-                local animstate = entity_data:get_anim_state()
+        local animstate = entity_data:get_anim_state()
 
-                if animstate == nil then
-                    return nil
-                end
+        if animstate == nil then
+            return nil
+        end
 
-                local target_yaw = get_target_yaw(me)
+        local target_yaw = get_target_yaw(me)
 
-                if target_yaw == nil then
-                    return nil
-                end
+        if target_yaw == nil then
+            return nil
+        end
 
-                return get_approximated_side(
-                    utils.normalize(animstate.eye_angles_y - target_yaw, -180, 180)
-                )
-            end
+        return get_approximated_side(
+            utils.normalize(
+                animstate.eye_angles_y - target_yaw,
+                -180,
+                180
+            )
+        )
+    end
 
-            local function is_enabled()
-                if not ref.enabled:get() then
-                    return false
-                end
+    local function is_enabled()
+        if ref.enabled == nil then
+            return false
+        end
 
-                if not ref.hotkey:get() then
-                    return false
-                end
+        if not ref.enabled:get() then
+            return false
+        end
 
-                return true
-            end
+        if ref.hotkey == nil then
+            return false
+        end
 
-            local function update_freestanding_options(cmd)
-                local items = builder:get 'Freestanding'
+        if not ref.hotkey:get() then
+            return false
+        end
 
-                if not builder:is_active_ex(items) then
-                    items = nil
-                end
+        return true
+    end
 
-                if freestanding_side ~= nil then
-                    buffer.pitch = 'Default'
+    local function update_freestanding_options(cmd)
+        local items = builder:get 'Freestanding'
 
-                    -- if ref.options:get 'disable yaw modifiers' then
-                    --     buffer.yaw_left = 0
-                    --     buffer.yaw_right = 0
+        if not builder:is_active_ex(items) then
+            items = nil
+        end
 
-                    --     buffer.yaw_jitter = 'Off'
-                    --     buffer.jitter_offset = 0
-                    -- end
+        if freestanding_side ~= nil then
+            buffer.pitch = 'Default'
 
-                    -- if ref.options:get 'body freestanding' then
-                    --     buffer.body_yaw = 'Static'
-                    --     buffer.body_yaw_offset = 180
-                    --     buffer.freestanding_body_yaw = true
-                    -- end
-
-                    if items ~= nil then
-                        builder:apply_ex(items)
-                    end
-                end
-
-                if localplayer.is_vulnerable then
-                    if items ~= nil and items.defensive ~= nil then
-                        if defensive:apply(cmd, items.defensive) then
-                            local yaw_offset = buffer.defensive.yaw_offset
-
-                            if yaw_offset ~= nil and last_ack_defensive_side ~= nil then
-                                buffer.defensive.yaw_offset = yaw_offset + last_ack_defensive_side
-                            end
-                        else
-                            if freestanding_side ~= nil then
-                                last_ack_defensive_side = freestanding_side
-                            end
-                        end
-                    end
-                end
-            end
-
-            function freestanding:update(cmd)
-                if not is_enabled() then
-                    freestanding_side = nil
-                    return
-                end
-
-                if cmd.chokedcommands == 0 then
-                    freestanding_side = get_side()
-                end
-
-                buffer.freestanding = true
-                update_freestanding_options(cmd)
+            if items ~= nil then
+                builder:apply_ex(items)
             end
         end
+
+        if localplayer.is_vulnerable then
+            if items ~= nil and items.defensive ~= nil then
+                if defensive:apply(cmd, items.defensive) then
+                    local yaw_offset =
+                        buffer.defensive.yaw_offset
+
+                    if yaw_offset ~= nil
+                        and last_ack_defensive_side ~= nil
+                    then
+                        buffer.defensive.yaw_offset =
+                            yaw_offset + last_ack_defensive_side
+                    end
+                else
+                    if freestanding_side ~= nil then
+                        last_ack_defensive_side =
+                            freestanding_side
+                    end
+                end
+            end
+        end
+    end
+
+    local function update_static_freestand()
+        if ref.static == nil then
+            return
+        end
+
+        if not ref.static:get() then
+            return
+        end
+
+        if freestanding_side == nil then
+            return
+        end
+
+        buffer.yaw_jitter = 'Off'
+        buffer.jitter_offset = 0
+    end
+
+    function freestanding:update(cmd)
+        if not is_enabled() then
+            freestanding_side = nil
+            return
+        end
+
+        if cmd.chokedcommands == 0 then
+            freestanding_side = get_side()
+        end
+
+        buffer.freestanding = true
+
+        update_freestanding_options(cmd)
+        update_static_freestand()
+    end
+end
 
         local defensive_flick = { } do
             local ref = ref.antiaim.settings.defensive_flick
@@ -10702,7 +10747,6 @@ local features do
             safe_head:update(cmd)
             defensive_flick:update(cmd)
 
-            disablers:update(cmd)
         end
 
         local function update_yaw_offset()
@@ -12783,6 +12827,7 @@ local features do
                     local color_accent = color(ref.color_accent:get())
                     local color_secondary = color(ref.color_secondary:get())
 
+                    local manual_value = antiaim.manual_yaw:get()
                     local desync_angle = antiaim.buffer.body_yaw_offset
 
                     local x_offset = PADDING

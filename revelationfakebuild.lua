@@ -12783,7 +12783,6 @@ local features do
                     local color_accent = color(ref.color_accent:get())
                     local color_secondary = color(ref.color_secondary:get())
 
-                    local manual_value = antiaim.manual_yaw:get()
                     local desync_angle = antiaim.buffer.body_yaw_offset
 
                     local x_offset = PADDING

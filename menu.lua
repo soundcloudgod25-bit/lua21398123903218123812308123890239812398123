@@ -1,5 +1,3 @@
--- Standalone 1:1-style Lua port of the provided C++ menu.
--- Uses: renderer.*, ui.mouse_position, ui.is_menu_open, client.key_state, globals.frametime.
 
 local hrisito_ui = {}
 
